@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>BHUMI-DRISHTI — Land Acquisition Delay Prediction</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --forest: #1a3c34;
+      --forest-dark: #0f2a24;
+      --sage: #4a7c6f;
+      --sand: #f4f0e6;
+      --paper: #ffffff;
+      --ink: #1a1a1a;
+      --soil: #6b6358;
+      --line: #e5e0d6;
+      --red: #c0392b;
+      --orange: #e67e22;
+      --green: #27ae60;
+      --blue: #2980b9;
+      --yellow: #f1c40f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "DM Sans", "Noto Sans Tamil", system-ui, sans-serif;
+      background: #eef2ef;
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    /* Login */
+    #loginScreen {
+      position: fixed; inset: 0; background: linear-gradient(145deg, #0f2a24 0%, #1a3c34 50%, #2d5a4a 100%);
+      display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 1.25rem;
+    }
+    #loginScreen.hidden { display: none; }
+    .login-card {
+      background: var(--paper); border-radius: 16px; padding: 2rem; width: 100%; max-width: 400px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+    }
+    .login-card .logo { font-size: 1.6rem; font-weight: 700; color: var(--forest); letter-spacing: -0.02em; }
+    .login-card .tag { color: var(--soil); font-size: 0.85rem; margin: 0.35rem 0 1.4rem; }
+    .login-card label { display: block; font-size: 0.8rem; font-weight: 600; margin: 0.75rem 0 0.3rem; color: var(--soil); }
+    .login-card input {
+      width: 100%; padding: 0.7rem 0.85rem; border: 1px solid var(--line); border-radius: 8px;
+      font-size: 0.95rem; min-height: 44px;
+    }
+    .login-card input:focus { outline: 2px solid var(--sage); border-color: transparent; }
+    #loginError { color: var(--red); font-size: 0.82rem; margin-top: 0.6rem; display: none; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+      background: var(--forest); color: #fff; border: none; border-radius: 8px;
+      padding: 0.7rem 1.1rem; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      min-height: 44px; transition: background 0.15s;
+    }
+    .btn:hover { background: var(--forest-dark); }
+    .btn.secondary { background: #fff; color: var(--forest); border: 1px solid var(--forest); }
+    .btn.danger { background: var(--red); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.block { width: 100%; margin-top: 1rem; }
+    .demo-row { display: flex; gap: 0.5rem; margin-top: 1rem; }
+    .demo-row button { flex: 1; font-size: 0.78rem; padding: 0.55rem; min-height: 40px; }
+
+    /* Header */
+    header {
+      background: var(--forest); color: var(--sand); padding: 0.75rem 1.25rem;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;
+      position: sticky; top: 0; z-index: 100;
+    }
+    header .brand { font-weight: 700; font-size: 1.15rem; letter-spacing: -0.02em; }
+    header .right { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+    .role-chip {
+      background: var(--forest-dark); border: 1px solid var(--sage); color: var(--sand);
+      border-radius: 20px; padding: 0.3rem 0.75rem; font-size: 0.78rem; font-weight: 600;
+    }
+    select.lang {
+      background: var(--forest-dark); color: var(--sand); border: 1px solid var(--sage);
+      border-radius: 6px; padding: 0.4rem 0.5rem; font-size: 0.8rem; min-height: 36px;
+    }
+    .btn-logout {
+      background: none; border: 1px solid var(--sage); color: var(--sand); border-radius: 6px;
+      padding: 0.4rem 0.7rem; cursor: pointer; font-size: 0.8rem; min-height: 36px;
+    }
+
+    /* Dashboard stats */
+    #statsBar {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem;
+      padding: 1rem 1.25rem; max-width: 1400px; margin: 0 auto;
+    }
+    @media (max-width: 700px) { #statsBar { grid-template-columns: repeat(2, 1fr); } }
+    .stat-card {
+      background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+      padding: 1rem; text-align: center;
+    }
+    .stat-card .num { font-size: 1.6rem; font-weight: 700; }
+    .stat-card .lbl { font-size: 0.75rem; color: var(--soil); margin-top: 0.2rem; }
+    .stat-card.high .num { color: var(--red); }
+    .stat-card.med .num { color: var(--orange); }
+    .stat-card.crit .num { color: #8e44ad; }
+
+    /* Main layout */
+    main {
+      display: grid; grid-template-columns: 380px 1fr; gap: 1.25rem;
+      padding: 0 1.25rem 2rem; max-width: 1400px; margin: 0 auto;
+    }
+    @media (max-width: 960px) { main { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 1.15rem;
+    }
+    .panel h2 { font-size: 1.05rem; margin-bottom: 0.85rem; color: var(--forest); }
+    label { display: block; font-size: 0.8rem; font-weight: 600; margin: 0.65rem 0 0.25rem; color: var(--soil); }
+    input[type=text], input[type=number], select.field {
+      width: 100%; padding: 0.6rem 0.7rem; border: 1px solid var(--line); border-radius: 8px;
+      font-family: inherit; font-size: 0.9rem; min-height: 42px;
+    }
+    .photo-zone {
+      border: 2px dashed var(--line); border-radius: 10px; padding: 1.2rem; text-align: center;
+      cursor: pointer; background: #fafaf8; margin-top: 0.5rem;
+    }
+    .photo-zone:hover { border-color: var(--sage); }
+    .photo-zone img { max-width: 100%; max-height: 160px; border-radius: 8px; margin-top: 0.5rem; }
+    .geo-readout { font-size: 0.78rem; color: var(--soil); margin-top: 0.4rem; word-break: break-all; }
+    .doc-checks { display: grid; gap: 0.4rem; margin-top: 0.5rem; }
+    .doc-checks label { display: flex; align-items: center; gap: 0.5rem; font-weight: 500; margin: 0; cursor: pointer; }
+
+    /* Case list */
+    .case-list { display: flex; flex-direction: column; gap: 0.65rem; max-height: 420px; overflow-y: auto; }
+    .case-item {
+      border: 1px solid var(--line); border-radius: 10px; padding: 0.85rem; cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .case-item:hover, .case-item.active { border-color: var(--sage); box-shadow: 0 2px 12px rgba(26,60,52,0.08); }
+    .case-item .id { font-weight: 700; font-size: 0.95rem; }
+    .case-item .meta { font-size: 0.78rem; color: var(--soil); margin-top: 0.25rem; }
+    .risk-badge {
+      display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem;
+      border-radius: 4px; text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    .risk-badge.HIGH { background: #fde8e6; color: var(--red); }
+    .risk-badge.MEDIUM { background: #fef5e7; color: var(--orange); }
+    .risk-badge.LOW { background: #e8f8ef; color: var(--green); }
+
+    /* Detail drawer / right column */
+    #detailPanel { display: none; }
+    #detailPanel.visible { display: block; }
+    .stepper {
+      display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.8rem 0 1rem;
+    }
+    .step {
+      font-size: 0.7rem; padding: 0.3rem 0.55rem; border-radius: 6px;
+      background: #f0eeea; color: var(--soil); font-weight: 600;
+    }
+    .step.done { background: #d4edda; color: #155724; }
+    .step.current { background: #fff3cd; color: #856404; }
+    .step.pending { opacity: 0.6; }
+
+    .shap-bars { margin: 0.75rem 0; }
+    .shap-row { margin-bottom: 0.55rem; }
+    .shap-row .label { font-size: 0.78rem; display: flex; justify-content: space-between; margin-bottom: 0.2rem; }
+    .shap-bar-bg { height: 10px; background: #eee; border-radius: 5px; overflow: hidden; }
+    .shap-bar-fill { height: 100%; background: linear-gradient(90deg, var(--orange), var(--red)); border-radius: 5px; }
+
+    .rec-list { list-style: none; margin: 0.5rem 0; }
+    .rec-list li {
+      padding: 0.55rem 0.7rem; border-radius: 8px; margin-bottom: 0.4rem; font-size: 0.85rem;
+      border-left: 4px solid var(--sage);
+    }
+    .rec-list li.HIGH { border-color: var(--red); background: #fdf2f1; }
+    .rec-list li.MEDIUM { border-color: var(--orange); background: #fef9f0; }
+    .rec-list li.LOW { border-color: var(--green); background: #f0faf4; }
+
+    #map { height: 280px; border-radius: 10px; margin-top: 0.75rem; border: 1px solid var(--line); }
+    .timeline { max-height: 160px; overflow-y: auto; font-size: 0.8rem; margin-top: 0.5rem; }
+    .timeline div { padding: 0.35rem 0; border-bottom: 1px solid var(--line); color: var(--soil); }
+
+    /* Voice + Assistant */
+    .assistant-box {
+      margin-top: 1rem; border-top: 1px solid var(--line); padding-top: 0.9rem;
+    }
+    .assistant-box textarea {
+      width: 100%; min-height: 60px; padding: 0.6rem; border: 1px solid var(--line);
+      border-radius: 8px; font-family: inherit; font-size: 0.9rem; resize: vertical;
+    }
+    .assistant-reply {
+      margin-top: 0.6rem; padding: 0.7rem; background: #f5f8f6; border-radius: 8px;
+      font-size: 0.88rem; line-height: 1.45; display: none;
+    }
+    .mic-btn {
+      background: var(--sage); color: #fff; border: none; border-radius: 50%;
+      width: 40px; height: 40px; cursor: pointer; font-size: 1.1rem;
+    }
+    .mic-btn.listening { background: var(--red); animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: 0.7; } }
+
+    /* Notifications dropdown */
+    .notif-btn { position: relative; background: none; border: 1px solid var(--sage); color: var(--sand);
+      border-radius: 6px; padding: 0.35rem 0.6rem; cursor: pointer; font-size: 0.85rem; }
+    .notif-badge {
+      position: absolute; top: -6px; right: -6px; background: var(--red); color: #fff;
+      font-size: 0.65rem; font-weight: 700; border-radius: 10px; padding: 0.1rem 0.35rem; min-width: 16px;
+    }
+    #notifPanel {
+      display: none; position: absolute; right: 1rem; top: 56px; width: 320px; max-height: 360px;
+      overflow-y: auto; background: #fff; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+      z-index: 150; border: 1px solid var(--line);
+    }
+    #notifPanel.open { display: block; }
+    .notif-item { padding: 0.75rem 1rem; border-bottom: 1px solid var(--line); font-size: 0.82rem; }
+    .notif-item.unread { background: #f8fbf9; }
+    .notif-item .t { font-weight: 600; }
+    .notif-item .b { color: var(--soil); margin-top: 0.2rem; }
+
+    .officer-actions { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .hidden { display: none !important; }
+    .empty-state { text-align: center; padding: 2rem 1rem; color: var(--soil); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <div class="logo">BHUMI-DRISHTI</div>
+      <div class="tag">Early Prediction of Land Acquisition Delays · SIH 2026</div>
+      <label data-i18n="username">Username</label>
+      <input type="text" id="loginUser" autocomplete="username" placeholder="citizen or officer" />
+      <label data-i18n="password">Password</label>
+      <input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••" />
+      <div id="loginError"></div>
+      <button class="btn block" id="loginBtn" data-i18n="login">Login</button>
+      <div class="demo-row">
+        <button class="btn secondary" id="demoCitizen" data-i18n="demoCitizen">Demo Citizen</button>
+        <button class="btn secondary" id="demoOfficer" data-i18n="demoOfficer">Demo Officer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app" class="hidden">
+    <header>
+      <div class="brand">BHUMI-DRISHTI</div>
+      <div class="right">
+        <select class="lang" id="langSelect" title="Language">
+          <option value="en">English</option>
+          <option value="ta">தமிழ்</option>
+          <option value="hi">हिन्दी</option>
+        </select>
+        <button class="notif-btn" id="notifBtn">🔔 <span class="notif-badge hidden" id="notifBadge">0</span></button>
+        <span class="role-chip" id="roleChip">—</span>
+        <button class="btn-logout" id="logoutBtn" data-i18n="logout">Logout</button>
+      </div>
+    </header>
+    <div id="notifPanel"></div>
+
+    <div id="statsBar" class="hidden">
+      <div class="stat-card"><div class="num" id="statTotal">0</div><div class="lbl" data-i18n="totalCases">Total Cases</div></div>
+      <div class="stat-card high"><div class="num" id="statHigh">0</div><div class="lbl" data-i18n="highRisk">High Risk</div></div>
+      <div class="stat-card med"><div class="num" id="statMed">0</div><div class="lbl" data-i18n="mediumRisk">Medium Risk</div></div>
+      <div class="stat-card crit"><div class="num" id="statCrit">0</div><div class="lbl" data-i18n="critical">Critical</div></div>
+    </div>
+
+    <main>
+      <!-- LEFT: form + list -->
+      <div>
+        <div class="panel" id="newCasePanel">
+          <h2 data-i18n="newCase">New Case</h2>
+          <label data-i18n="surveyNo">Survey Number</label>
+          <input type="text" id="surveyNo" placeholder="e.g. 125/2A" />
+          <label data-i18n="subDivision">Sub-division</label>
+          <input type="text" id="subDivision" placeholder="optional" />
+          <label data-i18n="area">Area (acres)</label>
+          <input type="number" id="area" step="0.1" min="0" placeholder="2.5" />
+          <label data-i18n="landType">Land Type</label>
+          <select class="field" id="landType">
+            <option value="agricultural">Agricultural</option>
+            <option value="residential">Residential</option>
+            <option value="commercial">Commercial</option>
+            <option value="forest">Forest</option>
+            <option value="waterbody">Waterbody</option>
+            <option value="other">Other</option>
+          </select>
+          <label data-i18n="uploadPhoto">Upload Land Photo</label>
+          <div class="photo-zone" id="photoZone">
+            <div>📷 Tap or drop photo</div>
+            <img id="photoPreview" class="hidden" alt="preview" />
+          </div>
+          <input type="file" id="photoInput" accept="image/*" capture="environment" class="hidden" />
+          <button type="button" class="btn secondary" id="gpsBtn" style="margin-top:0.6rem;width:100%" data-i18n="getLocation">Get GPS Location</button>
+          <div class="geo-readout" id="geoReadout">—</div>
+          <label data-i18n="documents">Documents (check available)</label>
+          <div class="doc-checks">
+            <label><input type="checkbox" id="docOwnership" checked /> Ownership document</label>
+            <label><input type="checkbox" id="docSurvey" checked /> Survey document</label>
+            <label><input type="checkbox" id="docCert" /> Required certificate</label>
+            <label><input type="checkbox" id="docOther" checked /> Other document</label>
+          </div>
+          <button class="btn block" id="submitBtn" data-i18n="submitCase">Submit Case</button>
+        </div>
+
+        <div class="panel" style="margin-top:1rem">
+          <h2 data-i18n="myCases">My Land Acquisition Cases</h2>
+          <div class="case-list" id="caseList">
+            <div class="empty-state">Loading…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: detail + map + AI -->
+      <div>
+        <div class="panel" id="detailPanel">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;flex-wrap:wrap">
+            <div>
+              <h2 id="detailId" style="margin:0">—</h2>
+              <div class="meta" id="detailMeta" style="font-size:0.8rem;color:var(--soil);margin-top:0.25rem"></div>
+            </div>
+            <span class="risk-badge" id="detailRisk">—</span>
+          </div>
+
+          <div class="stepper" id="stepper"></div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin:0.75rem 0">
+            <div style="background:#f8f9f8;padding:0.7rem;border-radius:8px">
+              <div style="font-size:0.72rem;color:var(--soil)" data-i18n="predictedDelay">Predicted Additional Delay</div>
+              <div style="font-size:1.35rem;font-weight:700" id="detailDelay">—</div>
+            </div>
+            <div style="background:#f8f9f8;padding:0.7rem;border-radius:8px">
+              <div style="font-size:0.72rem;color:var(--soil)">Probability</div>
+              <div style="font-size:1.35rem;font-weight:700" id="detailProb">—</div>
+            </div>
+          </div>
+
+          <h3 style="font-size:0.9rem;margin:0.8rem 0 0.4rem" data-i18n="whyDelay">Why Delay?</h3>
+          <div class="shap-bars" id="shapBars"></div>
+
+          <h3 style="font-size:0.9rem;margin:0.8rem 0 0.4rem" data-i18n="recommendations">Recommended Actions</h3>
+          <ul class="rec-list" id="recList"></ul>
+
+          <div id="landRecordBox" style="margin-top:0.75rem;padding:0.7rem;background:#f0f5f3;border-radius:8px;font-size:0.82rem"></div>
+
+          <div id="map"></div>
+
+          <h3 style="font-size:0.9rem;margin:0.9rem 0 0.3rem">Timeline</h3>
+          <div class="timeline" id="timeline"></div>
+
+          <div class="officer-actions hidden" id="officerActions">
+            <button class="btn secondary" data-stage="documents">Mark Docs Done</button>
+            <button class="btn secondary" data-stage="landRecord">Land Record OK</button>
+            <button class="btn secondary" data-stage="survey">Survey Done</button>
+            <button class="btn secondary" data-stage="officer">Officer Review Done</button>
+            <button class="btn secondary" data-stage="acquisition">Acquisition Done</button>
+            <button class="btn" data-stage="completed">Complete Case</button>
+          </div>
+
+          <div class="assistant-box">
+            <h3 style="font-size:0.9rem;margin-bottom:0.4rem" data-i18n="askAssistant">Ask Assistant</h3>
+            <div style="display:flex;gap:0.5rem;align-items:flex-start">
+              <textarea id="assistantInput" placeholder="Ask about delay, documents, next steps…"></textarea>
+              <button class="mic-btn" id="micBtn" title="Voice">🎤</button>
+            </div>
+            <button class="btn" id="askBtn" style="margin-top:0.5rem">Send</button>
+            <div class="assistant-reply" id="assistantReply"></div>
+          </div>
+        </div>
+
+        <div class="panel" id="welcomePanel">
+          <h2>Welcome to BHUMI-DRISHTI</h2>
+          <p style="color:var(--soil);font-size:0.9rem;line-height:1.5;margin-top:0.5rem">
+            Select a case from the list or submit a new land acquisition case.
+            The system verifies land records (mock TNGIS), runs delay prediction with explainable factors,
+            and recommends actions for officers.
+          </p>
+          <p style="color:var(--soil);font-size:0.85rem;margin-top:0.75rem">
+            <strong>Try survey numbers:</strong> 125/2A (private agri), 88/1 (waterbody poramboke), 42/3B (govt poramboke)
+          </p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+    let token = localStorage.getItem("bd_token") || "";
+    let role = localStorage.getItem("bd_role") || "";
+    let username = localStorage.getItem("bd_user") || "";
+    let lang = localStorage.getItem("bd_lang") || "en";
+    let i18n = {};
+    let records = [];
+    let selectedId = null;
+    let map = null;
+    let mapMarker = null;
+    let photoDataUrl = null;
+    let lat = null, lon = null;
+
+    const STAGE_LABELS = {
+      submitted: "Submitted", documents: "Documents", landRecord: "Land Record",
+      survey: "Survey", officer: "Officer Review", acquisition: "Acquisition", completed: "Completed"
+    };
+
+    function authHeaders() {
+      return { Authorization: "Bearer " + token, "Content-Type": "application/json" };
+    }
+
+    async function loadLang(code) {
+      try {
+        const r = await fetch(API + "/api/languages/" + code);
+        i18n = await r.json();
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          const val = key.split(".").reduce((o, k) => (o ? o[k] : null), i18n);
+          if (val) el.textContent = val;
+        });
+      } catch (_) {}
+    }
+
+    function showLogin(err) {
+      document.getElementById("loginScreen").classList.remove("hidden");
+      document.getElementById("app").classList.add("hidden");
+      if (err) {
+        const e = document.getElementById("loginError");
+        e.style.display = "block";
+        e.textContent = err;
+      }
+    }
+
+    function showApp() {
+      document.getElementById("loginScreen").classList.add("hidden");
+      document.getElementById("app").classList.remove("hidden");
+      document.getElementById("roleChip").textContent = role + " · " + username;
+      document.getElementById("statsBar").classList.toggle("hidden", role !== "officer");
+      document.getElementById("officerActions").classList.toggle("hidden", role !== "officer");
+      document.getElementById("newCasePanel").style.display = role === "officer" ? "none" : "block";
+      loadLang(lang);
+      document.getElementById("langSelect").value = lang;
+      refreshAll();
+    }
+
+    async function doLogin(user, pass) {
+      try {
+        const r = await fetch(API + "/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: user, password: pass })
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || "Login failed");
+        token = data.token;
+        role = data.role;
+        username = data.username;
+        localStorage.setItem("bd_token", token);
+        localStorage.setItem("bd_role", role);
+        localStorage.setItem("bd_user", username);
+        showApp();
+      } catch (e) {
+        showLogin(e.message);
+      }
+    }
+
+    document.getElementById("loginBtn").onclick = () =>
+      doLogin(document.getElementById("loginUser").value.trim(), document.getElementById("loginPass").value);
+    document.getElementById("demoCitizen").onclick = () => doLogin("citizen", "citizen123");
+    document.getElementById("demoOfficer").onclick = () => doLogin("officer", "officer123");
+    document.getElementById("logoutBtn").onclick = () => {
+      token = role = username = "";
+      localStorage.removeItem("bd_token");
+      localStorage.removeItem("bd_role");
+      localStorage.removeItem("bd_user");
+      showLogin();
+    };
+    document.getElementById("langSelect").onchange = (e) => {
+      lang = e.target.value;
+      localStorage.setItem("bd_lang", lang);
+      loadLang(lang);
+    };
+
+    // Photo
+    const photoZone = document.getElementById("photoZone");
+    const photoInput = document.getElementById("photoInput");
+    photoZone.onclick = () => photoInput.click();
+    photoZone.ondragover = (e) => { e.preventDefault(); };
+    photoZone.ondrop = (e) => {
+      e.preventDefault();
+      if (e.dataTransfer.files[0]) handlePhoto(e.dataTransfer.files[0]);
+    };
+    photoInput.onchange = () => { if (photoInput.files[0]) handlePhoto(photoInput.files[0]); };
+
+    function handlePhoto(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const max = 1280;
+          let w = img.width, h = img.height;
+          if (w > max || h > max) {
+            if (w > h) { h = Math.round(h * max / w); w = max; }
+            else { w = Math.round(w * max / h); h = max; }
+          }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          photoDataUrl = canvas.toDataURL("image/jpeg", 0.72);
+          const prev = document.getElementById("photoPreview");
+          prev.src = photoDataUrl;
+          prev.classList.remove("hidden");
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // GPS
+    document.getElementById("gpsBtn").onclick = () => {
+      if (!navigator.geolocation) {
+        document.getElementById("geoReadout").textContent = "Geolocation not supported";
+        return;
+      }
+      document.getElementById("geoReadout").textContent = "Locating…";
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          lat = pos.coords.latitude;
+          lon = pos.coords.longitude;
+          document.getElementById("geoReadout").textContent =
+            `Lat ${lat.toFixed(5)}, Lon ${lon.toFixed(5)} (±${Math.round(pos.coords.accuracy)}m)`;
+        },
+        () => { document.getElementById("geoReadout").textContent = "Permission denied or unavailable"; },
+        { enableHighAccuracy: true, timeout: 12000 }
+      );
+    };
+
+    // Submit
+    document.getElementById("submitBtn").onclick = async () => {
+      const surveyNo = document.getElementById("surveyNo").value.trim();
+      if (!surveyNo) { alert("Survey number required"); return; }
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      try {
+        const body = {
+          surveyNo,
+          subDivision: document.getElementById("subDivision").value.trim() || null,
+          area: parseFloat(document.getElementById("area").value) || 0,
+          landType: document.getElementById("landType").value,
+          lat, lon,
+          photoDataUrl,
+          documents: {
+            ownership: document.getElementById("docOwnership").checked,
+            survey: document.getElementById("docSurvey").checked,
+            certificate: document.getElementById("docCert").checked,
+            other: document.getElementById("docOther").checked
+          }
+        };
+        const r = await fetch(API + "/api/records", {
+          method: "POST", headers: authHeaders(), body: JSON.stringify(body)
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || "Submit failed");
+        await refreshAll();
+        selectCase(data.caseId);
+        // reset form lightly
+        document.getElementById("surveyNo").value = "";
+        photoDataUrl = null;
+        document.getElementById("photoPreview").classList.add("hidden");
+      } catch (e) {
+        alert(e.message);
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
+    async function refreshAll() {
+      try {
+        const r = await fetch(API + "/api/records", { headers: authHeaders() });
+        if (r.status === 401) { showLogin("Session expired"); return; }
+        const data = await r.json();
+        records = data.records || [];
+        renderCaseList();
+        if (role === "officer") {
+          const s = await fetch(API + "/api/stats", { headers: authHeaders() });
+          const st = await s.json();
+          document.getElementById("statTotal").textContent = st.total;
+          document.getElementById("statHigh").textContent = st.high;
+          document.getElementById("statMed").textContent = st.medium;
+          document.getElementById("statCrit").textContent = st.critical;
+        }
+        loadNotifications();
+        if (selectedId) {
+          const still = records.find((x) => x.caseId === selectedId || x.id === selectedId);
+          if (still) renderDetail(still);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderCaseList() {
+      const el = document.getElementById("caseList");
+      if (!records.length) {
+        el.innerHTML = '<div class="empty-state">No cases yet. Submit one above.</div>';
+        return;
+      }
+      el.innerHTML = records
+        .slice()
+        .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+        .map((r) => {
+          const risk = (r.prediction && r.prediction.risk) || "LOW";
+          const delay = r.prediction ? r.prediction.predictedAdditionalDays + " days" : "—";
+          return `<div class="case-item ${selectedId === r.caseId ? "active" : ""}" data-id="${r.caseId}">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span class="id">${r.caseId}</span>
+              <span class="risk-badge ${risk}">${risk}</span>
+            </div>
+            <div class="meta">Survey ${r.surveyNo || "—"} · ${r.currentStage || "—"} · +${delay}</div>
+          </div>`;
+        })
+        .join("");
+      el.querySelectorAll(".case-item").forEach((node) => {
+        node.onclick = () => selectCase(node.getAttribute("data-id"));
+      });
+    }
+
+    function selectCase(id) {
+      selectedId = id;
+      const rec = records.find((r) => r.caseId === id || r.id === id);
+      if (!rec) return;
+      renderDetail(rec);
+      renderCaseList();
+    }
+
+    function renderDetail(rec) {
+      document.getElementById("welcomePanel").classList.add("hidden");
+      document.getElementById("detailPanel").classList.add("visible");
+      document.getElementById("detailId").textContent = rec.caseId;
+      document.getElementById("detailMeta").textContent =
+        `Survey ${rec.surveyNo} · ${rec.landType || ""} · ${rec.area || 0} acres · Stage: ${rec.currentStage}`;
+      const risk = (rec.prediction && rec.prediction.risk) || "LOW";
+      const riskEl = document.getElementById("detailRisk");
+      riskEl.textContent = risk;
+      riskEl.className = "risk-badge " + risk;
+
+      // Stepper
+      const stages = ["submitted", "documents", "landRecord", "survey", "officer", "acquisition", "completed"];
+      const stepEl = document.getElementById("stepper");
+      stepEl.innerHTML = stages
+        .map((s) => {
+          const w = (rec.workflow && rec.workflow[s]) || {};
+          let cls = "pending";
+          if (w.status === "done") cls = "done";
+          else if (w.status === "current" || rec.currentStage === s) cls = "current";
+          return `<span class="step ${cls}">${STAGE_LABELS[s] || s}</span>`;
+        })
+        .join("");
+
+      const pred = rec.prediction || {};
+      document.getElementById("detailDelay").textContent =
+        (pred.predictedAdditionalDays != null ? pred.predictedAdditionalDays + " days" : "—");
+      document.getElementById("detailProb").textContent =
+        (pred.probability != null ? pred.probability + "%" : "—");
+
+      // SHAP
+      const shap = pred.shapFactors || [];
+      const factorNames = {
+        missingDocuments: "Missing documents",
+        surveyPending: "Survey verification pending",
+        porambokeOrGovt: "Government / Poramboke",
+        currentWaiting: "Current waiting time",
+        regionalHistory: "Historical regional delay",
+        largeArea: "Large area",
+        landTypeComplex: "Complex land type"
+      };
+      document.getElementById("shapBars").innerHTML = shap.length
+        ? shap
+            .map(
+              (f) => `<div class="shap-row">
+            <div class="label"><span>${factorNames[f.factor] || f.factor}</span><span>${f.percent}%</span></div>
+            <div class="shap-bar-bg"><div class="shap-bar-fill" style="width:${f.percent}%"></div></div>
+          </div>`
+            )
+            .join("")
+        : "<div style='font-size:0.85rem;color:var(--soil)'>No major delay factors</div>";
+
+      // Recommendations
+      const recs = pred.recommendations || [];
+      document.getElementById("recList").innerHTML = recs
+        .map((x) => `<li class="${x.priority}">${x.action}</li>`)
+        .join("");
+
+      // Land record
+      const lr = rec.landRecord || {};
+      document.getElementById("landRecordBox").innerHTML = lr.found
+        ? `<strong>Land Record</strong> (mock TNGIS)<br>
+           Ownership: ${lr.ownership} · Classification: ${lr.classification}<br>
+           Holder: ${lr.holderName || "—"} · ${lr.village || ""}, ${lr.district || ""}<br>
+           ${lr.isPoramboke ? "⚠ Poramboke flagged" : "Patta / clear private"} · ${lr.notes || ""}`
+        : `<strong>Land Record</strong><br>Not found — manual verification required.`;
+
+      // Timeline
+      document.getElementById("timeline").innerHTML = (rec.timeline || [])
+        .slice()
+        .reverse()
+        .map((t) => `<div>${new Date(t.at).toLocaleString()} — ${t.event} <em>(${t.by})</em></div>`)
+        .join("");
+
+      // Map
+      setTimeout(() => {
+        if (!map) {
+          map = L.map("map").setView([rec.lat || 11.0, rec.lon || 78.0], 12);
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "© OpenStreetMap"
+          }).addTo(map);
+          L.tileLayer(
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            { attribution: "Esri", maxZoom: 18, opacity: 0.0 }
+          ).addTo(map);
+        }
+        if (mapMarker) map.removeLayer(mapMarker);
+        if (rec.lat && rec.lon) {
+          map.setView([rec.lat, rec.lon], 14);
+          mapMarker = L.marker([rec.lat, rec.lon]).addTo(map)
+            .bindPopup(`${rec.caseId}<br>${rec.surveyNo}`).openPopup();
+        }
+        map.invalidateSize();
+      }, 100);
+    }
+
+    // Officer stage buttons
+    document.getElementById("officerActions").onclick = async (e) => {
+      const btn = e.target.closest("[data-stage]");
+      if (!btn || !selectedId) return;
+      const stage = btn.getAttribute("data-stage");
+      btn.disabled = true;
+      try {
+        const r = await fetch(API + "/api/records/" + selectedId + "/status", {
+          method: "PATCH",
+          headers: authHeaders(),
+          body: JSON.stringify({ stage, remark: "Updated via officer console" })
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || "Update failed");
+        await refreshAll();
+        selectCase(selectedId);
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
+    // Notifications
+    async function loadNotifications() {
+      try {
+        const r = await fetch(API + "/api/notifications", { headers: authHeaders() });
+        const data = await r.json();
+        const list = data.notifications || [];
+        const unread = list.filter((n) => !n.read).length;
+        const badge = document.getElementById("notifBadge");
+        if (unread > 0) {
+          badge.textContent = unread;
+          badge.classList.remove("hidden");
+        } else badge.classList.add("hidden");
+        document.getElementById("notifPanel").innerHTML = list.length
+          ? list
+              .map(
+                (n) =>
+                  `<div class="notif-item ${n.read ? "" : "unread"}" data-nid="${n.id}">
+                    <div class="t">${n.title}</div>
+                    <div class="b">${n.body}</div>
+                    <div style="font-size:0.7rem;color:#999;margin-top:0.2rem">${new Date(n.at).toLocaleString()}</div>
+                  </div>`
+              )
+              .join("")
+          : '<div class="notif-item">No notifications</div>';
+      } catch (_) {}
+    }
+    document.getElementById("notifBtn").onclick = (e) => {
+      e.stopPropagation();
+      document.getElementById("notifPanel").classList.toggle("open");
+    };
+    document.body.onclick = () => document.getElementById("notifPanel").classList.remove("open");
+
+    // Assistant
+    document.getElementById("askBtn").onclick = async () => {
+      const msg = document.getElementById("assistantInput").value.trim();
+      if (!msg) return;
+      const replyEl = document.getElementById("assistantReply");
+      replyEl.style.display = "block";
+      replyEl.textContent = "Thinking…";
+      try {
+        const r = await fetch(API + "/api/assistant", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({ message: msg, lang, caseId: selectedId })
+        });
+        const data = await r.json();
+        replyEl.textContent = data.reply || "No reply";
+        if (window.speechSynthesis && data.reply) {
+          const u = new SpeechSynthesisUtterance(data.reply);
+          u.lang = lang === "ta" ? "ta-IN" : lang === "hi" ? "hi-IN" : "en-IN";
+          window.speechSynthesis.speak(u);
+        }
+      } catch (e) {
+        replyEl.textContent = "Error: " + e.message;
+      }
+    };
+
+    // Voice
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recog = new SpeechRecognition();
+      recog.continuous = false;
+      recog.interimResults = false;
+      document.getElementById("micBtn").onclick = () => {
+        recog.lang = lang === "ta" ? "ta-IN" : lang === "hi" ? "hi-IN" : "en-IN";
+        document.getElementById("micBtn").classList.add("listening");
+        recog.start();
+      };
+      recog.onresult = (ev) => {
+        document.getElementById("assistantInput").value = ev.results[0][0].transcript;
+        document.getElementById("micBtn").classList.remove("listening");
+      };
+      recog.onerror = recog.onend = () => document.getElementById("micBtn").classList.remove("listening");
+    }
+
+    // Boot
+    if (token && role) showApp();
+    else showLogin();
+  </script>
+</body>
+</html>

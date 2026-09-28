@@ -1,0 +1,73 @@
+{
+  "appName": "भूमि-दृष्टि",
+  "tagline": "भूमि अधिग्रहण विलंब की पूर्व भविष्यवाणी",
+  "login": "लॉगिन",
+  "logout": "लॉगआउट",
+  "citizen": "नागरिक",
+  "officer": "अधिकारी",
+  "username": "उपयोगकर्ता नाम",
+  "password": "पासवर्ड",
+  "demoCitizen": "डेमो नागरिक",
+  "demoOfficer": "डेमो अधिकारी",
+  "myCases": "मेरे भूमि अधिग्रहण मामले",
+  "newCase": "नया मामला",
+  "surveyNo": "सर्वे नंबर",
+  "subDivision": "उप-विभाग",
+  "area": "क्षेत्रफल (एकड़)",
+  "landType": "भूमि प्रकार",
+  "uploadPhoto": "भूमि फोटो अपलोड करें",
+  "getLocation": "GPS स्थान प्राप्त करें",
+  "submitCase": "मामला जमा करें",
+  "documents": "दस्तावेज़",
+  "location": "स्थान",
+  "notifications": "सूचनाएं",
+  "askAssistant": "सहायक से पूछें",
+  "status": "स्थिति",
+  "risk": "जोखिम",
+  "predictedDelay": "अनुमानित अतिरिक्त विलंब",
+  "whyDelay": "विलंब क्यों?",
+  "recommendations": "अनुशंसित कार्रवाई",
+  "officerConsole": "अधिकारी कंसोल",
+  "totalCases": "कुल मामले",
+  "highRisk": "उच्च जोखिम",
+  "mediumRisk": "मध्यम जोखिम",
+  "critical": "गंभीर",
+  "riskMap": "जोखिम मानचित्र",
+  "priorityCases": "प्राथमिकता मामले",
+  "workflow": {
+    "submitted": "जमा किया गया",
+    "documents": "दस्तावेज़ सत्यापन",
+    "landRecord": "भूमि रिकॉर्ड सत्यापन",
+    "survey": "सर्वे सत्यापन",
+    "officer": "अधिकारी समीक्षा",
+    "acquisition": "अधिग्रहण प्रसंस्करण",
+    "completed": "पूर्ण"
+  },
+  "landTypes": {
+    "agricultural": "कृषि",
+    "residential": "आवासीय",
+    "commercial": "व्यावसायिक",
+    "forest": "वन",
+    "waterbody": "जल निकाय",
+    "other": "अन्य"
+  },
+  "ownership": {
+    "private": "निजी",
+    "government": "सरकारी",
+    "unknown": "अज्ञात / मैन्युअल जांच"
+  },
+  "classification": {
+    "patta": "पट्टा",
+    "poramboke": "पोरम्बोक",
+    "agricultural": "कृषि",
+    "forest": "वन",
+    "waterbody": "जल निकाय पोरम्बोक"
+  },
+  "alerts": {
+    "missingDoc": "आवश्यक दस्तावेज़ गायब",
+    "highRisk": "उच्च जोखिम मामला पाया गया",
+    "pendingSurvey": "सर्वे सत्यापन लंबित"
+  },
+  "voiceHint": "माइक दबाएं और अपनी भाषा में बोलें",
+  "language": "भाषा"
+}

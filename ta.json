@@ -1,0 +1,73 @@
+{
+  "appName": "பூமி-திரிஷ்டி",
+  "tagline": "நில அபகரிப்பு தாமதங்களை முன்கூட்டியே கணித்தல்",
+  "login": "உள்நுழை",
+  "logout": "வெளியேறு",
+  "citizen": "குடிமகன்",
+  "officer": "அதிகாரி",
+  "username": "பயனர்பெயர்",
+  "password": "கடவுச்சொல்",
+  "demoCitizen": "டெமோ குடிமகன்",
+  "demoOfficer": "டெமோ அதிகாரி",
+  "myCases": "என் நில அபகரிப்பு வழக்குகள்",
+  "newCase": "புதிய வழக்கு",
+  "surveyNo": "சர்வே எண்",
+  "subDivision": "உட்பிரிவு",
+  "area": "பரப்பளவு (ஏக்கர்)",
+  "landType": "நில வகை",
+  "uploadPhoto": "நிலப் புகைப்படம் பதிவேற்று",
+  "getLocation": "GPS இருப்பிடம் பெறு",
+  "submitCase": "வழக்கை சமர்ப்பி",
+  "documents": "ஆவணங்கள்",
+  "location": "இருப்பிடம்",
+  "notifications": "அறிவிப்புகள்",
+  "askAssistant": "உதவியாளரிடம் கேள்",
+  "status": "நிலை",
+  "risk": "ஆபத்து",
+  "predictedDelay": "கணிக்கப்பட்ட கூடுதல் தாமதம்",
+  "whyDelay": "ஏன் தாமதம்?",
+  "recommendations": "பரிந்துரைக்கப்பட்ட நடவடிக்கைகள்",
+  "officerConsole": "அதிகாரி கன்சோல்",
+  "totalCases": "மொத்த வழக்குகள்",
+  "highRisk": "உயர் ஆபத்து",
+  "mediumRisk": "நடுத்தர ஆபத்து",
+  "critical": "முக்கியமானவை",
+  "riskMap": "ஆபத்து வரைபடம்",
+  "priorityCases": "முன்னுரிமை வழக்குகள்",
+  "workflow": {
+    "submitted": "சமர்ப்பிக்கப்பட்டது",
+    "documents": "ஆவண சரிபார்ப்பு",
+    "landRecord": "நிலப் பதிவு சரிபார்ப்பு",
+    "survey": "சர்வே சரிபார்ப்பு",
+    "officer": "அதிகாரி ஆய்வு",
+    "acquisition": "அபகரிப்பு செயலாக்கம்",
+    "completed": "முடிக்கப்பட்டது"
+  },
+  "landTypes": {
+    "agricultural": "விவசாயம்",
+    "residential": "குடியிருப்பு",
+    "commercial": "வணிகம்",
+    "forest": "காடு",
+    "waterbody": "நீர்நிலை",
+    "other": "மற்றவை"
+  },
+  "ownership": {
+    "private": "தனியார்",
+    "government": "அரசு",
+    "unknown": "தெரியவில்லை / கைமுறை சரிபார்ப்பு"
+  },
+  "classification": {
+    "patta": "பட்டா",
+    "poramboke": "பொறம்போக்கு",
+    "agricultural": "விவசாயம்",
+    "forest": "காடு",
+    "waterbody": "நீர்நிலை பொறம்போக்கு"
+  },
+  "alerts": {
+    "missingDoc": "தேவையான ஆவணம் இல்லை",
+    "highRisk": "உயர் ஆபத்து வழக்கு கண்டறியப்பட்டது",
+    "pendingSurvey": "சர்வே சரிபார்ப்பு நிலுவையில்"
+  },
+  "voiceHint": "மைக்கை அழுத்தி உங்கள் மொழியில் பேசுங்கள்",
+  "language": "மொழி"
+}

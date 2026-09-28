@@ -1,0 +1,21 @@
+{
+  "name": "bhumi-drishti",
+  "version": "1.0.0",
+  "description": "BHUMI-DRISHTI — Early Prediction of Land Acquisition Delays (SIH 2026 Prototype)",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^9.0.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
