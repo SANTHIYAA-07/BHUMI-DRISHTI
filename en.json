@@ -1,0 +1,73 @@
+{
+  "appName": "BHUMI-DRISHTI",
+  "tagline": "Early Prediction of Land Acquisition Delays",
+  "login": "Login",
+  "logout": "Logout",
+  "citizen": "Citizen",
+  "officer": "Officer",
+  "username": "Username",
+  "password": "Password",
+  "demoCitizen": "Demo Citizen",
+  "demoOfficer": "Demo Officer",
+  "myCases": "My Land Acquisition Cases",
+  "newCase": "New Case",
+  "surveyNo": "Survey Number",
+  "subDivision": "Sub-division",
+  "area": "Area (acres)",
+  "landType": "Land Type",
+  "uploadPhoto": "Upload Land Photo",
+  "getLocation": "Get GPS Location",
+  "submitCase": "Submit Case",
+  "documents": "Documents",
+  "location": "Location",
+  "notifications": "Notifications",
+  "askAssistant": "Ask Assistant",
+  "status": "Status",
+  "risk": "Risk",
+  "predictedDelay": "Predicted Additional Delay",
+  "whyDelay": "Why Delay?",
+  "recommendations": "Recommended Actions",
+  "officerConsole": "Officer Console",
+  "totalCases": "Total Cases",
+  "highRisk": "High Risk",
+  "mediumRisk": "Medium Risk",
+  "critical": "Critical",
+  "riskMap": "Risk Map",
+  "priorityCases": "Priority Cases",
+  "workflow": {
+    "submitted": "Submitted",
+    "documents": "Document Verification",
+    "landRecord": "Land Record Verification",
+    "survey": "Survey Verification",
+    "officer": "Officer Review",
+    "acquisition": "Acquisition Processing",
+    "completed": "Completed"
+  },
+  "landTypes": {
+    "agricultural": "Agricultural",
+    "residential": "Residential",
+    "commercial": "Commercial",
+    "forest": "Forest",
+    "waterbody": "Waterbody",
+    "other": "Other"
+  },
+  "ownership": {
+    "private": "Private",
+    "government": "Government",
+    "unknown": "Unknown / Manual Check"
+  },
+  "classification": {
+    "patta": "Patta",
+    "poramboke": "Poramboke",
+    "agricultural": "Agricultural",
+    "forest": "Forest",
+    "waterbody": "Waterbody Poramboke"
+  },
+  "alerts": {
+    "missingDoc": "Missing required document",
+    "highRisk": "High-risk case detected",
+    "pendingSurvey": "Survey verification pending"
+  },
+  "voiceHint": "Tap the mic and speak in your language",
+  "language": "Language"
+}
